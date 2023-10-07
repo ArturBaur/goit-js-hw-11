@@ -13,11 +13,11 @@ let searchQuestion = '';
 
 btnLoadMore.style.display = 'none';
 
-const handleResponse = response => {
-  if (response.data.hits.length === 0) {
+const handleResponse = data => {
+  if (data.hits.length === 0) {
     handleNoResults();
   } else {
-    showResults(response.data.hits);
+    showResults(data.hits);
   }
 };
 
