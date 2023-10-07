@@ -1,8 +1,8 @@
 import Notiflix from 'notiflix';
 import 'notiflix/dist/notiflix-3.2.6.min.css';
-import axios from 'axios';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import fetchImages from './api';
 
 const searchForm = document.querySelector('#search-form');
 const gallery = document.querySelector('.gallery');
@@ -13,30 +13,11 @@ let searchQuestion = '';
 
 btnLoadMore.style.display = 'none';
 
-const fetchImages = async () => {
-  try {
-    const response = await axios.get('https://pixabay.com/api/', {
-      params: {
-        key: '39861868-f04abea59eb3e0f6d0b45f8fd',
-        q: searchQuestion,
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        page: currentPage,
-        per_page: 40,
-      },
-    });
-    handleResponse(response);
-  } catch (error) {
-    handleError(error);
-  }
-};
-
 const handleResponse = response => {
   if (response.data.hits.length === 0) {
     handleNoResults();
   } else {
-    showResults(response);
+    showResults(response.data.hits);
   }
 };
 
@@ -88,7 +69,7 @@ const createImagesGallery = images => {
   lightbox.refresh();
 };
 
-searchForm.addEventListener('submit', event => {
+searchForm.addEventListener('submit', async event => {
   event.preventDefault();
   const searchValue = event.currentTarget.elements.searchQuery.value;
 
@@ -101,7 +82,13 @@ searchForm.addEventListener('submit', event => {
   searchQuestion = searchValue;
   gallery.innerHTML = '';
   currentPage = 1;
-  fetchImages();
+
+  try {
+    const response = await fetchImages(searchQuestion, currentPage);
+    handleResponse(response);
+  } catch (error) {
+    handleError(error);
+  }
 });
 
 btnLoadMore.addEventListener('click', () => {
