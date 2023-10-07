@@ -17,7 +17,7 @@ const handleResponse = data => {
   if (data.hits.length === 0) {
     handleNoResults();
   } else {
-    showResults(data.hits);
+    showResults(data);
   }
 };
 
@@ -34,13 +34,11 @@ const handleNoResults = () => {
 };
 
 const showResults = response => {
-  createImagesGallery(response.data.hits);
+  createImagesGallery(response.hits);
   if (currentPage === 1) {
-    Notiflix.Notify.success(
-      `Hooray! We found ${response.data.totalHits} images.`
-    );
+    Notiflix.Notify.success(`Hooray! We found ${response.totalHits} images.`);
   }
-  if (response.data.totalHits <= currentPage * 40) {
+  if (response.totalHits <= currentPage * 40) {
     btnLoadMore.style.display = 'none';
     Notiflix.Notify.failure(
       "We're sorry, but you've reached the end of search results."
@@ -56,10 +54,10 @@ const createImagesGallery = images => {
       image => `<div class="photo-card">
       <a class="photo-card__link" href="${image.largeImageURL}"><img class="photo-card__image" src="${image.webformatURL}" alt="${image.tags}" loading="lazy" /></a>
       <div class="info">
-        <p class="info-item"><b>Likes</b>${image.likes}</p>
-        <p class="info-item"><b>Views</b>${image.views}</p>
-        <p class="info-item"><b>Comments</b>${image.comments}</p>
-        <p class="info-item"><b>Downloads</b>${image.downloads}</p>
+        <p class="info-item"><b>Likes:</b> ${image.likes}</p>
+        <p class="info-item"><b>Views:</b> ${image.views}</p>
+        <p class="info-item"><b>Comments:</b> ${image.comments}</p>
+        <p class="info-item"><b>Downloads:</b> ${image.downloads}</p>
       </div>
     </div>`
     )
@@ -91,10 +89,16 @@ searchForm.addEventListener('submit', async event => {
   }
 });
 
-btnLoadMore.addEventListener('click', () => {
+btnLoadMore.addEventListener('click', async () => {
   console.log('Load More clicked!');
   currentPage++;
-  fetchImages();
+
+  try {
+    const response = await fetchImages(searchQuestion, currentPage);
+    handleResponse(response);
+  } catch (error) {
+    handleError(error);
+  }
 
   const galleryElement = document.querySelector('.gallery');
 
